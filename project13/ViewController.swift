@@ -13,6 +13,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     @IBOutlet var intensity: UISlider!
     @IBOutlet var imageView: UIImageView!
+    
+    @IBOutlet var changeButton: UIButton!
+   // changeButton.setTitle("Filter")
+    
     var currentImage: UIImage!
     
     var context: CIContext! // rendering
@@ -48,7 +52,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     @IBAction func changeFilter(_ sender: Any) {
         let ac = UIAlertController(title: "Choose filter", message: nil, preferredStyle: .actionSheet)
-        
         ac.addAction(UIAlertAction(title: "CIBumpDistortion", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIGaussianBlur", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIPixellate", style: .default, handler: setFilter))
@@ -64,17 +67,30 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func setFilter(action: UIAlertAction) {
         guard currentImage != nil else { return }
         guard let actionTitle = action.title else { return }
+        changeButton.setTitle(actionTitle, for: .normal)
         
         currentFilter = CIFilter(name: actionTitle)
+        
         
         let beginImage = CIImage(image: currentImage)
         currentFilter.setValue(beginImage, forKey: kCIInputImageKey)
         
         applyProcessing()
     }
+    
+    func showError() {
+        let errorMessage = UIAlertController(title: "No Image selected", message: "Choose an image first", preferredStyle: .alert)
+        errorMessage.addAction(UIAlertAction(title: "Ok", style: .default))
+        
+        present(errorMessage, animated: true)
+    }
+
     @IBAction func save(_ sender: Any) {
-        guard let image = imageView.image else { return }
-        UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+        if let image = imageView.image {
+            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+        }   else {
+            showError()
+        }
     }
     
     @IBAction func intensityChanged(_ sender: Any) {
